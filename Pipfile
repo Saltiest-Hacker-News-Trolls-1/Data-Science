@@ -12,6 +12,7 @@ pycodestyle = "*"
 psycopg2 = "*"
 vadersentiment = "*"
 pandas = "*"
+numpy = "*"
 
 [requires]
 python_version = "3.7"

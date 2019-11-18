@@ -1,6 +1,5 @@
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import numpy as np
-import pandas as pd
 
 analyser = SentimentIntensityAnalyzer()
 

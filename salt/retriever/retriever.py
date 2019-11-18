@@ -16,7 +16,7 @@ def retrieve_and_add_item(
 		cleaner_func: callable = None
 ) -> None:
 	item = get_item(id, required_keys={'id', 'by'})
-	if score_func is not None:
+	if score_func is not None and 'text' in item:
 		if cleaner_func is not None:
 			item['text'] = cleaner_func(item['text'])
 		scores = score_func(item['text'])
