@@ -44,3 +44,10 @@ def get_max_item() -> int:
 	assert response.status_code == 200, \
 		f'Non-200 response from {url}'
 	return (response.json())
+
+
+def cleaner_func(comment):
+	comment = html.unescape(comment) # remove html escapes. eg "&#x27;" is an apostrophe
+	comment = re.sub('<.*?>',' ',comment) # remove HTML tags
+	comment = re.sub('http[s]?://\S+', ' ', comment) # remove links
+	return comment
