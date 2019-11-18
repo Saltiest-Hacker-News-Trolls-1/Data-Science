@@ -7,7 +7,7 @@ API_LOG = logging.getLogger('root')
 ENDPOINT = 'https://hacker-news.firebaseio.com/v0/'
 
 
-def get_item(id: int, required_keys: set = None) -> dict:
+def get_item(id: int, required_keys: set = None, comments_only: bool = True) -> dict:
 	"""
 	Get an item from the HN API
 
@@ -26,6 +26,8 @@ def get_item(id: int, required_keys: set = None) -> dict:
 	item = response.json()
 	if required_keys is not None:
 		assert set(item.keys()) > required_keys
+	if comments_only and item['type'] != 'comment':
+		return (None)
 	return (item)
 
 
