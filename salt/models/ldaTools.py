@@ -12,6 +12,13 @@ def tokenize(data):
     stops= stops + ['']
     return [token for token in comm.split(' ') if token not in stops]
 
+def doc_stream():
+    users=sqlQuery('''SELECT username FROM users''')
+    for user in users:
+        kids=sqlQuery(f'SELECT text FROM items WHERE id=={user}')
+        for comment in kids:
+            tokens=tokenize(comment)
+            yield tokens
 
 def get_dict_corpus(comments):
     '''takes in a cleaned dataframe of comments with a tokens column
