@@ -1,12 +1,48 @@
 #!/usr/bin/env python
 
+import asyncio
 import html
 import logging
 import re
 import requests
 
+from aiohttp import ClientSession
+
 API_LOG = logging.getLogger('root')
 ENDPOINT = 'https://hacker-news.firebaseio.com/v0/'
+
+
+async def fetch(url, session):
+	"""Fetch a url, using specified ClientSession."""
+	async with session.get(url) as response:
+		response = await response.json()
+		return (response)
+
+
+async def fetch_all(urls):
+	"""Launch requests for all web pages."""
+	tasks = []
+	async with ClientSession() as session:
+		for url in urls:
+			task = asyncio.ensure_future(fetch(url, session))
+			tasks.append(task)  # create list of tasks
+		results = await asyncio.gather(*tasks)  # gather task responses
+	return (results)
+
+
+def fetch_batch(urls, required_keys: set = None, comments_only: bool = True):
+	results = asyncio.run(fetch_all(urls))
+	batch = {}
+	for result in results:
+		if required_keys is not None and not set(result.keys()) >= required_keys:
+			if 'id' in result:
+				API_LOG.info(f'Warning while getting item {result["id"]}:')
+			API_LOG.warning(f'Keys {set(result.keys())} < required keys {required_keys}')
+		elif comments_only and result['type'] != 'comment':
+			batch[result['id']] = None
+		else:
+			batch[result['id']] = result
+	return (batch)
 
 
 def get_item(id: int, required_keys: set = None, comments_only: bool = True) -> dict:
@@ -48,7 +84,6 @@ def get_max_item() -> int:
 	return (response.json())
 
 
-
 def cleaner_func(comment):
 	"""
 	Remove HTML elements from comment strings
@@ -56,7 +91,7 @@ def cleaner_func(comment):
 	Returns:
 		(str): comment
 	"""
-	comment = html.unescape(comment) # remove html escapes
-	comment = re.sub('<.*?>',' ',comment) # remove HTML tags
-	comment = re.sub('http[s]?://\S+', ' ', comment) # remove links
+	comment = html.unescape(comment)  # remove html escapes
+	comment = re.sub('<.*?>',' ',comment)  # remove HTML tags
+	comment = re.sub('http[s]?://\S+', ' ', comment)  # remove links
 	return comment

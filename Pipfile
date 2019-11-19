@@ -13,6 +13,7 @@ psycopg2 = "*"
 vadersentiment = "*"
 pandas = "*"
 numpy = "*"
+aiohttp = {extras = ["speedups"],version = "*"}
 
 [requires]
 python_version = "3.7"
