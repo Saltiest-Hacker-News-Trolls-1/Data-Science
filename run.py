@@ -23,14 +23,14 @@ def main():
 		if max_id is None:
 			max_id = 0
 		start = max_id + 1
-		stop = start + 5000000
+		stop = get_max_item
 		step = 10000
 
 		for i in range(start, stop, step):
 			urls = []
 			for id in range(i, i + step):
 				urls.append(f'{ENDPOINT}/item/{id}.json')
-			RUN_LOG.info(f'Fetching batch of urls: {urls}')
+			RUN_LOG.info(f'Fetching batch of urls in range {urls[0]} - {urls[-1]}')
 			batch = fetch_batch(urls, required_keys={'id', 'by', 'type'})
 			add_items_from_batch(psql_conn, batch, score_func=score_func, cleaner_func=cleaner_func)
 

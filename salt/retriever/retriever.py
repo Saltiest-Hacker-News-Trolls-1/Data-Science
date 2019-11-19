@@ -4,7 +4,7 @@ import logging
 from psycopg2.extensions import connection
 
 from salt.retriever.apifuncs import get_item
-from salt.retriever.dbfuncs import add_item
+from salt.retriever.dbfuncs import add_item, add_items
 
 RETRIEVER_LOG = logging.getLogger('root')
 
@@ -39,6 +39,7 @@ def add_items_from_batch(
 		score_func: callable = None,
 		cleaner_func: callable = None
 ) -> None:
+	to_add = []
 	for id, item in batch.items():
 		if item is not None:
 			if score_func is not None and 'text' in item:
@@ -46,8 +47,9 @@ def add_items_from_batch(
 					item['text'] = cleaner_func(item['text'])
 				scores = score_func(item['text'])
 				item = {**item, **scores}
-			RETRIEVER_LOG.info(f'Adding item with id {id}.')
-			add_item(conn, item)
+			RETRIEVER_LOG.info(f'Readying item with id {id}.')
+			to_add.append(item)
 		else:
-			RETRIEVER_LOG.info(f'Not adding item with id {id}, as it is not a comment.')
+			RETRIEVER_LOG.info(f'Not readying item with id {id}, as it is not a comment.')
+	add_items(conn, to_add)
 

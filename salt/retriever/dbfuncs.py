@@ -2,6 +2,8 @@
 
 import logging
 
+from psycopg2.extras import execute_batch
+
 DB_LOG = logging.getLogger('root')
 
 
@@ -66,8 +68,8 @@ def reset_tables(conn):
 
 def add_item(conn, item):
 	query = """
-		INSERT INTO items(id, by, negativity)
-		VALUES (%(id)s, %(by)s, %(negativity)s);
+		INSERT INTO items(id, by, negativity, positivity, neutrality, compound)
+		VALUES (%(id)s, %(by)s, %(negativity)s, %(positivity)s, %(neutrality)s, %(compound)s);
 	"""
 	curr = conn.cursor()
 	curr.execute(
@@ -84,6 +86,18 @@ def add_item(conn, item):
 	curr.close()
 	conn.commit()
 	DB_LOG.info(f'Added item with id {item["id"]}.')
+
+
+def add_items(conn, items):
+	query = """
+		INSERT INTO items(id, by, negativity, positivity, neutrality, compound)
+		VALUES (%(id)s, %(by)s, %(neg)s, %(pos)s, %(neu)s, %(compound)s);
+	"""
+	curr = conn.cursor()
+	execute_batch(curr, query, items)
+	curr.close()
+	conn.commit()
+	DB_LOG.info(f'Added {len(items)} items.')
 
 
 def get_max_id_retrieved(conn):
