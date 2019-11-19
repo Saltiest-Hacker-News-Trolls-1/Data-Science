@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import aiohttp
 import logging
 import psycopg2
 
@@ -39,4 +40,8 @@ def main():
 
 
 if __name__ == '__main__':
-	main()
+	while True:
+		try:
+			main()
+		except aiohttp.client_exceptions.ClientConnectorError as e:
+			pass
