@@ -14,7 +14,39 @@ def get_dict_corpus(comments):
     corpus=[id2word.doc2bow(text) for text in comments['tokens']]
     return id2word, corpus
 
+def compute_cv(dictionary, corpus, comments, limit, start=2, step=3, passes=5, n_jobs=6):
+    '''
+    compute the coherence values for a various number of topics 
+    parameters:
+    dictionary: a gensim dictionary object
+    corpus: a generated gensim corpus obj
+    comments: the collection of comments that we're working from 
+    limit: max num of topics
+    passes: number of times to run the model
+    
+    returns: coherence_values: a dataframe of the coherence values'''
+    
+    coherence_values=[]
+    
+    for iter_ in range(passes):
+        for num_topics in range(start, limit, step):
+            model=LdaMulticore(corpus=corpus,
+                               id2word=dictionary,
+                               num_topics=num_topics,
+                               workers=n_jobs
+                               )
+            coherence = CoherenceModel(model=model,
+                                       dictionary=dictionary, 
+                                       corpus=corpus, 
+                                       coherence='u_mass')
+            coherence_values.append({'pass': iter_,
+                                     'num_topics': num_topics,
+                                     'coherence_score': coherence.get_coherence()})
+    return pd.DataFrame(coherence_values)
 
+def cv_graph(coherenceDF):
+    ax=sns.lineplot(x='num_topics',y='coherence_score', data=topic_coherence)
+    return ax
 
 #once we get a big dataset this should only be run once 
 #this is the equivalent of fit
