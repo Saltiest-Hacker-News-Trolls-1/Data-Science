@@ -3,6 +3,8 @@ from gensim import corpora
 
 from gensim.models.ldamulticore import LdaMulticore
 
+from salt.retriever.tools import sqlQuery
+
 def tokenize(data):
     ''' this function takes in a string, cleans it and returs it as a list of tokens
     it works as a .apply function on a dataframe'''
