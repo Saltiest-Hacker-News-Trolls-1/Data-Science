@@ -37,10 +37,13 @@ def add_items_from_batch(
 		conn: connection,
 		batch: dict,
 		score_func: callable = None,
-		cleaner_func: callable = None
+		cleaner_func: callable = None,
+		required_keys: set = None
 ) -> None:
+	if required_keys is None:
+		required_keys = set()
 	to_add = []
-	RETRIEVER_LOG.info(f'Readying batch of items with ids in range {min(batch.keys())}, {max(batch.keys())}.')
+	RETRIEVER_LOG.info(f'Readying batch of {len(batch.keys())} items.')
 	for id, item in batch.items():
 		if item is not None:
 			if score_func is not None and 'text' in item:
@@ -48,6 +51,9 @@ def add_items_from_batch(
 					item['text'] = cleaner_func(item['text'])
 				scores = score_func(item['text'])
 				item = {**item, **scores}
+			item_keys = set(item.keys())
+			for missingkey in required_keys - item_keys:
+				item[missingkey] = None
 			to_add.append(item)
 	add_items(conn, to_add)
 
