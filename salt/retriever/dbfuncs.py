@@ -12,8 +12,8 @@ def create_tables(conn):
 		CREATE TABLE IF NOT EXISTS items (
 			id INT NOT NULL PRIMARY KEY,
 			by VARCHAR(15) NOT NULL,
+			text TEXT,
 			time INT,
-			score INT,
 			parent INT,
 			deleted BOOLEAN DEFAULT FALSE,
 			negativity NUMERIC,
@@ -125,6 +125,7 @@ def get_missing_users(conn):
 
 
 def add_users(conn, users):
+	DB_LOG.info(f'Adding {len(users)} users to DB...')
 	query = """
 		INSERT INTO users(id, karma)
 		VALUES (%(id)s, %(karma)s);
@@ -137,9 +138,10 @@ def add_users(conn, users):
 
 
 def add_items(conn, items):
+	DB_LOG.info(f'Adding {len(items)} items to DB...')
 	query = """
-		INSERT INTO items(id, by, time, score, parent, negativity, positivity, neutrality, compound)
-		VALUES (%(id)s, %(by)s, %(time)s, %(score)s, %(parent)s, %(neg)s, %(pos)s, %(neu)s, %(compound)s);
+		INSERT INTO items(id, by, text, time, parent, negativity, positivity, neutrality, compound)
+		VALUES (%(id)s, %(by)s, %(text)s, %(time)s, %(parent)s, %(neg)s, %(pos)s, %(neu)s, %(compound)s);
 	"""
 	curr = conn.cursor()
 	execute_batch(curr, query, items)
