@@ -33,3 +33,21 @@ def retrieve_and_add_item(
 		RETRIEVER_LOG.info(f'Not adding item with id {id}, as it is not a comment.')
 
 
+def add_items_from_batch(
+		conn: connection,
+		batch: dict,
+		score_func: callable = None,
+		cleaner_func: callable = None
+) -> None:
+	for id, item in batch.items():
+		if item is not None:
+			if score_func is not None and 'text' in item:
+				if cleaner_func is not None:
+					item['text'] = cleaner_func(item['text'])
+				scores = score_func(item['text'])
+				item = {**item, **scores}
+			RETRIEVER_LOG.info(f'Adding item with id {id}.')
+			add_item(conn, item)
+		else:
+			RETRIEVER_LOG.info(f'Not adding item with id {id}, as it is not a comment.')
+
