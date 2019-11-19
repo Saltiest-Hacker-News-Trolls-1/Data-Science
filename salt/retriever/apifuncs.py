@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+import html
 import logging
+import re
 import requests
 
 API_LOG = logging.getLogger('root')
@@ -44,3 +46,17 @@ def get_max_item() -> int:
 	assert response.status_code == 200, \
 		f'Non-200 response from {url}'
 	return (response.json())
+
+
+
+def cleaner_func(comment):
+	"""
+	Remove HTML elements from comment strings
+
+	Returns:
+		(str): comment
+	"""
+	comment = html.unescape(comment) # remove html escapes
+	comment = re.sub('<.*?>',' ',comment) # remove HTML tags
+	comment = re.sub('http[s]?://\S+', ' ', comment) # remove links
+	return comment

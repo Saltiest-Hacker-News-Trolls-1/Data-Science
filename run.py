@@ -5,7 +5,7 @@ import psycopg2
 
 from salt.retriever.log import startLog, getLogFile
 from salt.retriever.dbfuncs import create_tables, get_max_id_retrieved
-from salt.retriever.apifuncs import get_max_item
+from salt.retriever.apifuncs import get_max_item, cleaner_func
 from salt.retriever.retriever import retrieve_and_add_item
 from salt.models.ScoringFunctions import score_func
 
