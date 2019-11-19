@@ -23,7 +23,7 @@ def main():
 		if max_id is None:
 			max_id = 0
 		start = max_id + 1
-		stop = start + 500
+		stop = start + 50000
 
 		for i in range(start, stop):
 			retrieve_and_add_item(
