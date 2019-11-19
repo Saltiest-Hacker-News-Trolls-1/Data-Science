@@ -88,10 +88,58 @@ def add_item(conn, item):
 	DB_LOG.info(f'Added item with id {item["id"]}.')
 
 
+def get_all_users(conn):
+	query = """
+		SELECT DISTINCT by FROM items;
+	"""
+	curr = conn.cursor()
+	curr.execute(query)
+	results = curr.fetchall()
+	curr.close()
+	users_list = []
+	for result in results:
+		users_list.append(result[0])
+	DB_LOG.info(f'Retrieved {len(users_list)} users from items.')
+	return (users_list)
+
+
+def get_missing_users(conn):
+	query = """
+		SELECT DISTINCT by
+		FROM items AS i
+		WHERE NOT EXISTS (
+			SELECT
+			FROM users
+			WHERE users.id = i.by
+		);
+	"""
+	curr = conn.cursor()
+	curr.execute(query)
+	results = curr.fetchall()
+	curr.close()
+	users_list = []
+	for result in results:
+		users_list.append(result[0])
+	DB_LOG.info(f'Retrieved {len(users_list)} users from items that are missing from users.')
+	return (users_list)
+
+
+def add_users(conn, users):
+	query = """
+		INSERT INTO users(id, karma)
+		VALUES (%(id)s, %(karma)s);
+	"""
+	curr = conn.cursor()
+	execute_batch(curr, query, users)
+	curr.close()
+	conn.commit()
+	DB_LOG.info(f'Added {len(users)} users.')
+
+
 def add_items(conn, items):
 	query = """
-		INSERT INTO items(id, by, negativity, positivity, neutrality, compound)
-		VALUES (%(id)s, %(by)s, %(neg)s, %(pos)s, %(neu)s, %(compound)s);
+		INSERT INTO items(id, by, time, score, parent, negativity, positivity, neutrality, compound)
+		VALUES (%(id)s, %(by)s, %(time)s, %(score)s, %(parent)s, %(neg)s, %(pos)s, %(neu)s, %(compound)s);
 	"""
 	curr = conn.cursor()
 	execute_batch(curr, query, items)
