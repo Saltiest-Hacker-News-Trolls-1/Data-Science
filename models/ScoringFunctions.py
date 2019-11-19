@@ -30,12 +30,4 @@ def get_scores(data):
 
 
 
-def tokenize(data):
-    ''' this function takes in a string, cleans it and returs it as a list of tokens
-    it works as a .apply function on a dataframe'''
-        comm=data.lower()
-        comm=re.sub(r'[^a-zA-Z ^0-9]', '', comm)
-        stops=[x for x in STOPWORDS]
-        stops= stops + ['']
-        return [token for token in comm.split(' ') if token not in stops]
     

@@ -3,7 +3,14 @@ from gensim import corpora
 
 from gensim.models.ldamulticore import LdaMulticore
 
-from ScoringFunctions.py import tokenize
+def tokenize(data):
+    ''' this function takes in a string, cleans it and returs it as a list of tokens
+    it works as a .apply function on a dataframe'''
+    comm=data.lower()
+    comm=re.sub(r'[^a-zA-Z ^0-9]', '', comm)
+    stops=[x for x in STOPWORDS]
+    stops= stops + ['']
+    return [token for token in comm.split(' ') if token not in stops]
 
 
 def get_dict_corpus(comments):
@@ -91,9 +98,9 @@ def user_means(userComments, id2word, lda):
     #creates a sparse matrix
     def to_sparse(doc):
         d_dist={k:0 for k in range(0,15)} # that big number needs to match number of topics
-            for t in doc:
-                d_dist[t[0]] = t[1] #the doc will be a dense matrix, pull out the values
-            return d_dist
+        for t in doc:
+            d_dist[t[0]] = t[1] #the doc will be a dense matrix, pull out the values
+        return d_dist
     sparse=[to_sparse(d) for d in dense]
     
     #get the topics
