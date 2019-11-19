@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import aiohttp
 import logging
 import psycopg2
 
@@ -32,10 +33,15 @@ def main():
 			urls = []
 			for id in range(i, i + step):
 				urls.append(f'{ENDPOINT}/item/{id}.json')
-			RUN_LOG.info(f'Fetching batch of urls in range {urls[0]} - {urls[-1]}')
+			RUN_LOG.info(f'Fetching batch of {len(urls)} urls in range {urls[0]} - {urls[-1]}')
 			batch = fetch_batch(urls, required_keys={'id', 'by', 'type'})
-			add_items_from_batch(psql_conn, batch, score_func=score_func, cleaner_func=cleaner_func)
+			add_items_from_batch(psql_conn, batch, score_func=score_func, cleaner_func=cleaner_func,
+				required_keys={'id', 'by', 'text', 'time', 'parent'})
 
 
 if __name__ == '__main__':
-	main()
+	while True:
+		try:
+			main()
+		except aiohttp.client_exceptions.ClientConnectorError as e:
+			pass
