@@ -35,6 +35,8 @@ def fetch_batch(urls, required_keys: set = None, comments_only: bool = True):
 	batch = {}
 	for result in results:
 		if required_keys is not None and not set(result.keys()) >= required_keys:
+			if 'id' in result:
+				API_LOG.info(f'Warning while getting item {result["id"]}:')
 			API_LOG.warning(f'Keys {set(result.keys())} < required keys {required_keys}')
 		elif comments_only and result['type'] != 'comment':
 			batch[result['id']] = None
