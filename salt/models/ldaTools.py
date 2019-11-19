@@ -20,15 +20,15 @@ def doc_stream():
             tokens=tokenize(comment)
             yield tokens
 
-def get_dict_corpus(comments):
+def get_dict_corpus(doc_stream):
     '''takes in a cleaned dataframe of comments with a tokens column
     returns a gensim dictionary object and a corpus of those words'''
-    id2word=corpora.Dictionary(comments['tokens'])
+    id2word=corpora.Dictionary(doc_stream())
     id2word.filter_extremes(no_below=2)
     corpus=[id2word.doc2bow(text) for text in comments['tokens']]
     return id2word, corpus
 
-def compute_cv(dictionary, corpus, comments, limit, start=2, step=3, passes=5, n_jobs=6):
+def compute_cv(dictionary, corpus, limit, start=2, step=3, passes=5, n_jobs=6):
     '''
     compute the coherence values for a various number of topics 
     parameters:
@@ -64,22 +64,10 @@ def cv_graph(coherenceDF):
 
 #once we get a big dataset this should only be run once 
 #this is the equivalent of fit
-def fitldaModel(comments, num_topics=15, n_jobs=6):
+def fitldaModel(id2word, corpus, num_topics=15, n_jobs=6):
     '''this takes in a dataframe that has a column named "comments" and creates an LDA model
     and returns it for further use. Num_topics is the number of topics to use and n_jobs is
     the number of cores on CPU to use. n_jobs cannot be -1'''
-    
-    #clean and tokenize the data a little
-    comments['tokens']=comments['comment'].apply(tokenize)
-    
-    #set up dictionary
-    id2word=corpora.Dictionary(comments['tokens'])
-    
-    #prune dictionary
-    id2word.filter_extremes(no_below=2)
-    
-    #create the corpus
-    corpus=[id2word.doc2bow(text) for text in comments['tokens']]
     
     #create and run the LDA Model
     lda = LdaMulticore(corpus=corpus,
@@ -90,8 +78,10 @@ def fitldaModel(comments, num_topics=15, n_jobs=6):
                    workers=n_jobs
                   )
     
-    return lda, id2word
+    return lda
 
+
+#this function isn't going to be used. I can't bring myself to delete it yet though
 def user_means(userComments, id2word, lda):
     '''This function gives the average topic scores for a user.
     userComments should be a list of comments from a single user that you want to get the
