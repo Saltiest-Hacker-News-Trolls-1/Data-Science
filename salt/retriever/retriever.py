@@ -15,7 +15,12 @@ def retrieve_and_add_item(
 		score_func: callable = None,
 		cleaner_func: callable = None
 ) -> None:
-	item = get_item(id, required_keys={'id', 'by', 'type'})
+	try:
+		item = get_item(id, required_keys={'id', 'by', 'type'})
+	except Exception as e:
+		RETRIEVER_LOG.info(f'Skipping item with id {id} due to exception: {str(e)}')
+		RETRIEVER_LOG.warning(e)
+		item = None
 	if item is not None:
 		if score_func is not None and 'text' in item:
 			if cleaner_func is not None:

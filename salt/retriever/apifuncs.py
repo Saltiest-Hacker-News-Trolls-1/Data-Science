@@ -26,8 +26,8 @@ def get_item(id: int, required_keys: set = None, comments_only: bool = True) -> 
 	assert response.status_code == 200, \
 		f'Non-200 response from {url}'
 	item = response.json()
-	if required_keys is not None:
-		assert set(item.keys()) > required_keys
+	if required_keys is not None and not set(item.keys()) >= required_keys:
+		raise KeyError(f'Keys {set(item.keys())} < required keys {required_keys}')
 	if comments_only and item['type'] != 'comment':
 		return (None)
 	return (item)
