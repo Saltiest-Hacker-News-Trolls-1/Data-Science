@@ -23,10 +23,15 @@ def main():
 		if max_id is None:
 			max_id = 0
 		start = max_id + 1
-		stop = start + 50
+		stop = start + 500
 
 		for i in range(start, stop):
-			retrieve_and_add_item(psql_conn, i, score_func=score_func)
+			retrieve_and_add_item(
+				psql_conn,
+				i,
+				score_func=score_func,
+				cleaner_func=cleaner_func
+			)
 
 
 if __name__ == '__main__':
