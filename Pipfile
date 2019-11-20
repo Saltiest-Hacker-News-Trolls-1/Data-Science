@@ -15,6 +15,7 @@ pandas = "*"
 numpy = "*"
 aiohttp = {extras = ["speedups"],version = "*"}
 gensim = "*"
+python-decouple = "*"
 
 [requires]
 python_version = "3.7"
