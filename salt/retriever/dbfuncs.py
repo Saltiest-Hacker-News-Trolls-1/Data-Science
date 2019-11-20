@@ -2,6 +2,8 @@
 
 import logging
 
+from psycopg2.extras import execute_batch
+
 DB_LOG = logging.getLogger('root')
 
 
@@ -10,8 +12,8 @@ def create_tables(conn):
 		CREATE TABLE IF NOT EXISTS items (
 			id INT NOT NULL PRIMARY KEY,
 			by VARCHAR(15) NOT NULL,
+			text TEXT,
 			time INT,
-			score INT,
 			parent INT,
 			deleted BOOLEAN DEFAULT FALSE,
 			negativity NUMERIC,
@@ -66,8 +68,8 @@ def reset_tables(conn):
 
 def add_item(conn, item):
 	query = """
-		INSERT INTO items(id, by, negativity)
-		VALUES (%(id)s, %(by)s, %(negativity)s);
+		INSERT INTO items(id, by, negativity, positivity, neutrality, compound)
+		VALUES (%(id)s, %(by)s, %(negativity)s, %(positivity)s, %(neutrality)s, %(compound)s);
 	"""
 	curr = conn.cursor()
 	curr.execute(
@@ -84,6 +86,68 @@ def add_item(conn, item):
 	curr.close()
 	conn.commit()
 	DB_LOG.info(f'Added item with id {item["id"]}.')
+
+
+def get_all_users(conn):
+	query = """
+		SELECT DISTINCT by FROM items;
+	"""
+	curr = conn.cursor()
+	curr.execute(query)
+	results = curr.fetchall()
+	curr.close()
+	users_list = []
+	for result in results:
+		users_list.append(result[0])
+	DB_LOG.info(f'Retrieved {len(users_list)} users from items.')
+	return (users_list)
+
+
+def get_missing_users(conn):
+	query = """
+		SELECT DISTINCT by
+		FROM items AS i
+		WHERE NOT EXISTS (
+			SELECT
+			FROM users
+			WHERE users.id = i.by
+		);
+	"""
+	curr = conn.cursor()
+	curr.execute(query)
+	results = curr.fetchall()
+	curr.close()
+	users_list = []
+	for result in results:
+		users_list.append(result[0])
+	DB_LOG.info(f'Retrieved {len(users_list)} users from items that are missing from users.')
+	return (users_list)
+
+
+def add_users(conn, users):
+	DB_LOG.info(f'Adding {len(users)} users to DB...')
+	query = """
+		INSERT INTO users(id, karma)
+		VALUES (%(id)s, %(karma)s);
+	"""
+	curr = conn.cursor()
+	execute_batch(curr, query, users)
+	curr.close()
+	conn.commit()
+	DB_LOG.info(f'Added {len(users)} users.')
+
+
+def add_items(conn, items):
+	DB_LOG.info(f'Adding {len(items)} items to DB...')
+	query = """
+		INSERT INTO items(id, by, text, time, parent, negativity, positivity, neutrality, compound)
+		VALUES (%(id)s, %(by)s, %(text)s, %(time)s, %(parent)s, %(neg)s, %(pos)s, %(neu)s, %(compound)s);
+	"""
+	curr = conn.cursor()
+	execute_batch(curr, query, items)
+	curr.close()
+	conn.commit()
+	DB_LOG.info(f'Added {len(items)} items.')
 
 
 def get_max_id_retrieved(conn):

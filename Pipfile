@@ -9,10 +9,13 @@ verify_ssl = true
 requests = "*"
 mypy = "*"
 pycodestyle = "*"
-psycopg2 = "*"
+psycopg2-binary = "*"
 vadersentiment = "*"
 pandas = "*"
 numpy = "*"
+aiohttp = {extras = ["speedups"],version = "*"}
+gensim = "*"
+python-decouple = "*"
 
 [requires]
 python_version = "3.7"

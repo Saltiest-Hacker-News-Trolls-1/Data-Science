@@ -25,4 +25,5 @@ def main():
 
 
 if __name__ == '__main__':
-	main()
+	if input('Are you certain you want to reset the database (y/n): ').lower() in ['y', 'yes']:
+		main()
