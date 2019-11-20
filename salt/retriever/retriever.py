@@ -77,7 +77,7 @@ def add_items_from_batch_pooled(
 		score_func=score_func,
 		cleaner_func=cleaner_func
 	)
-	with Pool(16) as p:
+	with Pool(4) as p:
 		to_add_nones = p.map(rbi, batch.items())
 	to_add = list(filter(None.__ne__, to_add_nones))
 	add_items(conn, to_add)
