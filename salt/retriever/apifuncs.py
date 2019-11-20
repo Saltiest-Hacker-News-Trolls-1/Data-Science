@@ -101,6 +101,7 @@ def cleaner_func(comment):
 		(str): comment
 	"""
 	comment = html.unescape(comment)  # remove html escapes
+	comment = comment.replace('\x00', '').replace('\0', '')
 	comment = re.sub('<.*?>',' ',comment)  # remove HTML tags
 	comment = re.sub('http[s]?://\S+', ' ', comment)  # remove links
 	return comment

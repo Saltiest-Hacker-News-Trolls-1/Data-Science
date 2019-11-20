@@ -36,7 +36,7 @@ def main():
 			RUN_LOG.info(f'Fetching batch of {len(urls)} urls in range {urls[0]} - {urls[-1]}')
 			batch = fetch_batch(urls, required_keys={'id', 'by', 'type'})
 			add_items_from_batch(psql_conn, batch, score_func=score_func, cleaner_func=cleaner_func,
-				required_keys={'id', 'by', 'text', 'time', 'parent'})
+				required_keys={'id', 'by', 'text', 'time', 'parent', 'neg', 'neu', 'pos', 'compound'})
 
 
 if __name__ == '__main__':
