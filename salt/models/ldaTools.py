@@ -2,8 +2,8 @@ from gensim.parsing.preprocessing import STOPWORDS
 from gensim import corpora
 
 from gensim.models.ldamulticore import LdaMulticore
-
-from salt.retriever.tools import sqlQuery
+import re
+from salt.retriever.tools import query_with_connection
 
 def tokenize(data):
     ''' this function takes in a string, cleans it and returs it as a list of tokens
@@ -15,11 +15,11 @@ def tokenize(data):
     return [token for token in comm.split(' ') if token not in stops]
 
 def doc_stream():
-    users=sqlQuery('''SELECT username FROM users''')
+    users=query_with_connection('''SELECT id FROM users LIMIT 1000''')
     for user in users:
-        kids=sqlQuery(f'SELECT text FROM items WHERE id=={user}')
+        kids=query_with_connection(f"SELECT text FROM items WHERE by='{user[0]}' LIMIT 1000")
         for comment in kids:
-            tokens=tokenize(comment)
+            tokens=tokenize(comment[0])
             yield tokens
 
 def get_dict_corpus(doc_stream):
