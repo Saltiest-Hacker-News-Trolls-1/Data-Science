@@ -12,9 +12,6 @@ from salt.models.ScoringFunctions import score_func
 
 
 def main():
-	startLog(getLogFile(__file__))
-	RUN_LOG = logging.getLogger('root')
-
 	RUN_LOG.info('Connecting to database...')
 	with psycopg2.connect(database='hn_salt') as psql_conn:
 		RUN_LOG.info('Database connection established.')
@@ -40,8 +37,14 @@ def main():
 
 
 if __name__ == '__main__':
-	while True:
+	startLog(getLogFile(__file__))
+	RUN_LOG = logging.getLogger('root')
+	eCount = 0
+	while eCount < 20:
 		try:
 			main()
-		except aiohttp.client_exceptions.ClientConnectorError as e:
-			pass
+		except Exception as e:
+			e += 1
+			RUN_LOG.warning(f'Exception in run, current exception count: {e}')
+			RUN_LOG.exception(e)
+
