@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 import logging
+
+from multiprocessing import Pool
+from functools import partial
 from psycopg2.extensions import connection
 
 from salt.retriever.apifuncs import get_item
@@ -57,3 +60,38 @@ def add_items_from_batch(
 			to_add.append(item)
 	add_items(conn, to_add)
 
+
+def add_items_from_batch_pooled(
+		conn: connection,
+		batch: dict,
+		score_func: callable = None,
+		cleaner_func: callable = None,
+		required_keys: set = None
+) -> None:
+	if required_keys is None:
+		required_keys = set()
+	RETRIEVER_LOG.info(f'Readying batch of {len(batch.keys())} items.')
+	rbi = partial(
+		ready_batch_item,
+		required_keys=required_keys,
+		score_func=score_func,
+		cleaner_func=cleaner_func
+	)
+	with Pool(16) as p:
+		to_add_nones = p.map(rbi, batch.items())
+	to_add = list(filter(None.__ne__, to_add_nones))
+	add_items(conn, to_add)
+
+
+def ready_batch_item(iditem, required_keys={}, score_func=None, cleaner_func=None):
+	id, item = iditem
+	if item is not None:
+		if score_func is not None and 'text' in item:
+			if cleaner_func is not None:
+				item['text'] = cleaner_func(item['text'])
+			scores = score_func(item['text'])
+			item = {**item, **scores}
+		item_keys = set(item.keys())
+		for missingkey in required_keys - item_keys:
+			item[missingkey] = None
+		return (item)

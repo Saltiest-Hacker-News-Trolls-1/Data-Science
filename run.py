@@ -7,7 +7,7 @@ import psycopg2
 from salt.retriever.log import startLog, getLogFile
 from salt.retriever.dbfuncs import create_tables, get_max_id_retrieved
 from salt.retriever.apifuncs import get_max_item, cleaner_func, fetch_batch, ENDPOINT
-from salt.retriever.retriever import add_items_from_batch
+from salt.retriever.retriever import add_items_from_batch_pooled
 from salt.models.ScoringFunctions import score_func
 
 
@@ -35,7 +35,7 @@ def main():
 				urls.append(f'{ENDPOINT}/item/{id}.json')
 			RUN_LOG.info(f'Fetching batch of {len(urls)} urls in range {urls[0]} - {urls[-1]}')
 			batch = fetch_batch(urls, required_keys={'id', 'by', 'type'})
-			add_items_from_batch(psql_conn, batch, score_func=score_func, cleaner_func=cleaner_func,
+			add_items_from_batch_pooled(psql_conn, batch, score_func=score_func, cleaner_func=cleaner_func,
 				required_keys={'id', 'by', 'text', 'time', 'parent', 'neg', 'neu', 'pos', 'compound'})
 
 
