@@ -24,7 +24,7 @@ def main():
 		stop = get_max_item()
 		step = 10000
 		if stop - start < step:
-			step = stop - start - 1
+			step = stop - start
 
 		for i in range(start, stop, step):
 			urls = []
