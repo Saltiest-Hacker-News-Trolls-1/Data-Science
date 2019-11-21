@@ -36,7 +36,7 @@ def main():
 				add_items_from_batch_pooled(psql_conn, batch, score_func=score_func, cleaner_func=cleaner_func,
 					required_keys={'id', 'by', 'text', 'time', 'parent', 'neg', 'neu', 'pos', 'compound'})
 
-		RUN_LOG.info('Done getting items..')
+		RUN_LOG.info('Done getting items.')
 	return True
 
 
@@ -53,3 +53,5 @@ if __name__ == '__main__':
 			RUN_LOG.warning(f'Exception in run, current exception count: {eCount}')
 			RUN_LOG.exception(e)
 
+	RUN_LOG.critical('App finished, program closing...')
+	RUN_LOG.critical('********************************')
