@@ -30,10 +30,14 @@ def main():
 			urls = []
 			for id in range(i, i + step):
 				urls.append(f'{ENDPOINT}/item/{id}.json')
-			RUN_LOG.info(f'Fetching batch of {len(urls)} urls in range {urls[0]} - {urls[-1]}')
-			batch = fetch_batch(urls, required_keys={'id', 'by', 'type'})
-			add_items_from_batch_pooled(psql_conn, batch, score_func=score_func, cleaner_func=cleaner_func,
-				required_keys={'id', 'by', 'text', 'time', 'parent', 'neg', 'neu', 'pos', 'compound'})
+			if len(urls) > 0:
+				RUN_LOG.info(f'Fetching batch of {len(urls)} urls in range {urls[0]} - {urls[-1]}')
+				batch = fetch_batch(urls, required_keys={'id', 'by', 'type'})
+				add_items_from_batch_pooled(psql_conn, batch, score_func=score_func, cleaner_func=cleaner_func,
+					required_keys={'id', 'by', 'text', 'time', 'parent', 'neg', 'neu', 'pos', 'compound'})
+
+		RUN_LOG.info('Done getting items..')
+	return True
 
 
 if __name__ == '__main__':
@@ -41,10 +45,11 @@ if __name__ == '__main__':
 	RUN_LOG = logging.getLogger('root')
 	eCount = 0
 	while eCount < 20:
+		eCount += 1
 		try:
-			main()
+			if main() is True:
+				break
 		except Exception as e:
-			eCount += 1
-			RUN_LOG.warning(f'Exception in run, current exception count: {e}')
+			RUN_LOG.warning(f'Exception in run, current exception count: {eCount}')
 			RUN_LOG.exception(e)
 
