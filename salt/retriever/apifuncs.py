@@ -91,6 +91,7 @@ def get_max_item() -> int:
 	response = requests.get(url)
 	assert response.status_code == 200, \
 		f'Non-200 response from {url}'
+	API_LOG.info(f'Got response of {response.json()} from API max item.')
 	return (response.json())
 
 
