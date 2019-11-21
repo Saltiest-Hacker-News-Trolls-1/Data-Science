@@ -32,7 +32,11 @@ def create_tables(conn):
 		CREATE TABLE IF NOT EXISTS users (
 			id VARCHAR(15) NOT NULL PRIMARY KEY,
 			karma INT,
-			negativity NUMERIC
+			negativity NUMERIC,
+			positivity NUMERIC,
+			neutrality NUMERIC,
+			compound NUMERIC,
+			commentcount INT
 		);
 	"""
 	DB_LOG.info('Executing `users` create query...')
@@ -86,6 +90,36 @@ def add_item(conn, item):
 	curr.close()
 	conn.commit()
 	DB_LOG.info(f'Added item with id {item["id"]}.')
+
+
+def populate_user_averages(conn):
+	query = """
+		UPDATE users
+		SET
+			commentcount = itemsavg.count,
+			negativity = itemsavg.negavg,
+			positivity = itemsavg.posavg,
+			neutrality = itemsavg.neuavg,
+			compound = itemsavg.compavg
+		FROM (
+			SELECT
+				by,
+				COUNT(*) AS count,
+				AVG(negativity) AS negavg,
+				AVG(positivity) AS posavg,
+				AVG(neutrality) AS neuavg,
+				AVG(compound) AS compavg
+			FROM items
+			WHERE by IS NOT NULL
+			GROUP BY by
+		) as itemsavg
+		WHERE itemsavg.by = id;
+	"""
+	DB_LOG.info('Executing `users` populate query...')
+	curr = conn.cursor()
+	curr.execute(query)
+	curr.close()
+	DB_LOG.info('`users` populate query executed.')
 
 
 def get_all_users(conn):
