@@ -1,33 +1,47 @@
 from gensim.parsing.preprocessing import STOPWORDS
 from gensim import corpora
+from gensim.models.coherencemodel import CoherenceModel
 
 from gensim.models.ldamulticore import LdaMulticore
 import re
 from salt.retriever.tools import query_with_connection
+from salt.retriever.log import startLog, getLogFile
+import logging
 
+import pandas as pd
+
+startLog(getLogFile(__file__))
+RUN_LOG = logging.getLogger('root')
+RUN_LOG.info('Connecting to database...')
+stops=[x for x in STOPWORDS]
+stops= stops + ['', 'im']
+    
 def tokenize(data):
     ''' this function takes in a string, cleans it and returs it as a list of tokens
     it works as a .apply function on a dataframe'''
     comm=data.lower()
     comm=re.sub(r'[^a-zA-Z ^0-9]', '', comm)
-    stops=[x for x in STOPWORDS]
-    stops= stops + ['']
     return [token for token in comm.split(' ') if token not in stops]
 
-def doc_stream():
+def doc_stream(): 
     users=query_with_connection('''SELECT id FROM users LIMIT 1000''')
-    for user in users:
-        kids=query_with_connection(f"SELECT text FROM items WHERE by='{user[0]}' LIMIT 1000")
+    for i, user in enumerate(users):
+        RUN_LOG.info(f'selecting from user {i} {user[0]}')
+        kids=query_with_connection(f"SELECT text FROM items WHERE by='{user[0]}' LIMIT 100")
         for comment in kids:
             tokens=tokenize(comment[0])
+            RUN_LOG.info(f'yielding tokens: {tokens}')
             yield tokens
 
 def get_dict_corpus(doc_stream):
     '''takes in a cleaned dataframe of comments with a tokens column
     returns a gensim dictionary object and a corpus of those words'''
     id2word=corpora.Dictionary(doc_stream())
+    RUN_LOG.info(f'before filter_extremes len: {len(id2word.keys())}')
     id2word.filter_extremes(no_below=2)
-    corpus=[id2word.doc2bow(text) for text in comments['tokens']]
+    RUN_LOG.info(f'after filter_extremes len: {len(id2word.keys())}')
+    RUN_LOG.info('*********************Done Building Dictionary*********************')
+    corpus=[id2word.doc2bow(text) for text in doc_stream()]
     return id2word, corpus
 
 def compute_cv(dictionary, corpus, limit, start=2, step=3, passes=5, n_jobs=6):
@@ -45,7 +59,9 @@ def compute_cv(dictionary, corpus, limit, start=2, step=3, passes=5, n_jobs=6):
     coherence_values=[]
     
     for iter_ in range(passes):
+        RUN_LOG.info(f'starting pass {iter_}')
         for num_topics in range(start, limit, step):
+            RUN_LOG.info(f'modeling {num_topics} topics')
             model=LdaMulticore(corpus=corpus,
                                id2word=dictionary,
                                num_topics=num_topics,
