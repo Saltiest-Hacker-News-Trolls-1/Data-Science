@@ -44,7 +44,7 @@ if __name__ == '__main__':
 		try:
 			main()
 		except Exception as e:
-			e += 1
+			eCount += 1
 			RUN_LOG.warning(f'Exception in run, current exception count: {e}')
 			RUN_LOG.exception(e)
 
