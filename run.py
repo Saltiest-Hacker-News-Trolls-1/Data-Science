@@ -28,7 +28,8 @@ def main():
 
 		for i in range(start, stop, step):
 			urls = []
-			for id in range(i, i + step):
+			istop = min(i+step, stop)
+			for id in range(i, istop):
 				urls.append(f'{ENDPOINT}/item/{id}.json')
 			if len(urls) > 0:
 				RUN_LOG.info(f'Fetching batch of {len(urls)} urls in range {urls[0]} - {urls[-1]}')
