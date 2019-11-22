@@ -51,8 +51,11 @@ def load_data():
         id2word=pickle.load(f)
     return lda, id2word
 
-def predict(text, id2word, lda):
-    tokens=tokenize(text)
+def predict(text, id2word, lda, tokens=True):
+    if tokens:
+        tokens=text
+    else:
+        tokens=tokenize(text)
     bow=id2word.doc2bow(tokens)
     return lda[bow]
 
