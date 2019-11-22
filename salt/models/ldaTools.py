@@ -11,7 +11,7 @@ import logging
 import pandas as pd
 import pickle
 
-startLog(getLogFile(__file__))
+# startLog(getLogFile(__file__))
 RUN_LOG = logging.getLogger('root')
 RUN_LOG.info('Connecting to database...')
 stops=[x for x in STOPWORDS]
