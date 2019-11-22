@@ -27,14 +27,14 @@ def tokenize(data):
     return [token for token in comm.split(' ') if token not in stops]
 
 def doc_stream(): 
-    users=query_with_connection('''SELECT id FROM users WHERE lda_run='f' LIMIT 300;''')
+    users=query_with_connection('''SELECT id FROM users WHERE lda_run='f' LIMIT 3000;''')
     for i, user in enumerate(users):
         RUN_LOG.info(f'selecting from user {i} {user[0]}')
         kids=query_with_connection(f"SELECT text, id FROM items WHERE by='{user[0]}' and lda_salty is NULL LIMIT 100;")
         for comment in kids:
             tokens=tokenize(comment[0])
             # RUN_LOG.info(f'yielding tokens: {tokens}')
-            yield tokens, comment[1], user[0]
+            yield tokens, comment[1], user
 
 def update_users(doc_stream, lda, id2word):
     scores=[]

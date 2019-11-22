@@ -38,7 +38,8 @@ def create_tables(conn):
 			neutrality NUMERIC,
 			compound NUMERIC,
 			commentcount INT,
-			lda_run BOOLEAN DEFAULT false
+			lda_run BOOLEAN DEFAULT false,
+			lda_salty NUMERIC
 		);
 	"""
 	DB_LOG.info('Executing `users` create query...')
@@ -102,7 +103,8 @@ def populate_user_averages(conn):
 			negativity = itemsavg.negavg,
 			positivity = itemsavg.posavg,
 			neutrality = itemsavg.neuavg,
-			compound = itemsavg.compavg
+			compound = itemsavg.compavg,
+			lda_salty = itemsavg.ldaavg
 		FROM (
 			SELECT
 				by,
@@ -110,7 +112,8 @@ def populate_user_averages(conn):
 				AVG(negativity) AS negavg,
 				AVG(positivity) AS posavg,
 				AVG(neutrality) AS neuavg,
-				AVG(compound) AS compavg
+				AVG(compound) AS compavg,
+				AVG(lda_salty) AS ldaavg
 			FROM items
 			WHERE by IS NOT NULL
 			GROUP BY by
@@ -196,14 +199,13 @@ def add_lda(conn, comments, users):
 	curr.close()
 
 	users = set(users)
-	usersDict = {'id': user for user in users}
 	DB_LOG.info(f'Flagging lda_run as true for: {users}')
 	DB_LOG.info(f'Flagging lda_run as true for {len(users)} users...')
 	query = """
-		UPDATE users SET lda_run = true WHERE id = %(id)s;
+		UPDATE users SET lda_run = true WHERE id = %s;
 	"""
 	curr = conn.cursor()
-	execute_batch(curr, query, usersDict)
+	execute_batch(curr, query, users)
 	curr.close()
 	conn.commit()
 	DB_LOG.info(f'Added {len(comments)} lda scores.')
@@ -219,6 +221,25 @@ def reset_lda_flag(conn):
 	curr.close()
 	conn.commit()
 	DB_LOG.info(f'Reset lda_run flags.')
+
+# UPDATE users SET lda_run = 'false' WHERE id IN ( SELECT DISTINCT(by) FROM items WHERE lda_salty IS NULL )
+def update_lda_flag(conn):
+	DB_LOG.info('Updating up to 300 lda_run flags...')
+	query = """
+		UPDATE users
+		SET lda_run = 'false'
+		WHERE id IN (
+			SELECT DISTINCT(by)
+			FROM items
+			WHERE lda_salty IS NULL
+			LIMIT 300
+		);
+		"""
+	curr = conn.cursor()
+	curr.execute(query)
+	curr.close()
+	conn.commit()
+	DB_LOG.info(f'Updated lda_run flags.')
 
 
 def get_max_id_retrieved(conn):

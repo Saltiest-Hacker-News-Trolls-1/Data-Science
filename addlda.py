@@ -4,7 +4,7 @@ import logging
 import psycopg2
 
 from salt.retriever.log import startLog, getLogFile
-from salt.retriever.dbfuncs import add_lda
+from salt.retriever.dbfuncs import add_lda, update_lda_flag
 from salt.models.ldaTools import update_users, load_data, doc_stream
 
 
@@ -16,6 +16,7 @@ def main():
 		lda, id2word = load_data()
 		LDA_LOG.info('Data loaded.')
 		while True:
+			update_lda_flag(psql_conn)
 			LDA_LOG.info('Getting lda scores...')
 			scores, users = update_users(doc_stream, lda, id2word)
 			LDA_LOG.info(f'Got {len(scores)} lda scores.')
