@@ -1,0 +1,11 @@
+*/5 * * * * /srv/Data-Science/run.sh >> /srv/Data-Science/logs/cron.log 2>&1
+*/5 * * * * /srv/Data-Science/addusers.sh >> /srv/Data-Science/logs/cron.log 2>&1
+*/5 * * * * echo "called at:" >> /srv/Data-Science/logs/cron.log 2>&1
+*/5 * * * * date >> /srv/Data-Science/logs/cron.log 2>&1
+* * 1 * * echo "run and addusers start logs:" > /srv/Data-Science/logs/cron.log
+2,22,42 * * * * /srv/Data-Science/addlda.sh >> /srv/Data-Science/logs/cron.log 2>&1
+2,22,42 * * * * echo "called at:" >> /srv/Data-Science/logs/cron.log 2>&1
+2,22,42 * * * * date >> /srv/Data-Science/logs/cron.log 2>&1
+53 * * * * /srv/Data-Science/updateaverages.sh >> /srv/Data-Science/logs/cron.log 2>&1
+53 * * * * echo "called at:" >> /srv/Data-Science/logs/cron.log 2>&1
+53 * * * * date >> /srv/Data-Science/logs/cron.log 2>&1

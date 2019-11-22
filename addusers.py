@@ -11,12 +11,9 @@ from salt.models.ScoringFunctions import score_func
 
 
 def main():
-	startLog(getLogFile(__file__))
-	RUN_LOG = logging.getLogger('root')
-
-	RUN_LOG.info('Connecting to database...')
+	ADD_LOG.info('Connecting to database...')
 	with psycopg2.connect(database='hn_salt') as psql_conn:
-		RUN_LOG.info('Database connection established.')
+		ADD_LOG.info('Database connection established.')
 		create_tables(psql_conn)
 
 		users_list = get_missing_users(psql_conn)
@@ -28,10 +25,27 @@ def main():
 			urls = []
 			for username in users_chunk:
 				urls.append(f'{ENDPOINT}/user/{username}.json')
-			RUN_LOG.info(f'Fetching batch of {len(urls)} urls in range {urls[0]} [{i}] - {urls[-1]} [{i + len(users_chunk)}]')
-			batch = fetch_batch(urls, required_keys={'id', 'karma'}, comments_only=False)
-			add_users(psql_conn, batch.values())
+			if len(urls) > 0:
+				ADD_LOG.info(f'Fetching batch of {len(urls)} urls in range {urls[0]} [{i}] - {urls[-1]} [{i + len(users_chunk)}]')
+				batch = fetch_batch(urls, required_keys={'id', 'karma'}, comments_only=False)
+				add_users(psql_conn, batch.values())
+
+	ADD_LOG.info('Done getting users.')
+	return True
 
 
 if __name__ == '__main__':
-	main()
+	startLog(getLogFile(__file__))
+	ADD_LOG = logging.getLogger('root')
+	eCount = 0
+	while eCount < 20:
+		eCount += 1
+		try:
+			if main() is True:
+				break
+		except Exception as e:
+			ADD_LOG.warning(f'Exception in addusers, current exception count: {eCount}')
+			ADD_LOG.exception(e)
+
+	ADD_LOG.critical('App finished, program closing...')
+	ADD_LOG.critical('********************************')

@@ -37,13 +37,14 @@ def fetch_batch(urls, required_keys: set = None, comments_only: bool = True):
 		try:
 			if result is None:
 				API_LOG.warning(f'Null return from API.')
-				continue
-			if required_keys is not None and not set(result.keys()) >= required_keys:
-				if 'id' in result:
-					API_LOG.info(f'Warning while getting item {result["id"]}:')
-				API_LOG.warning(f'Keys {set(result.keys())} < required keys {required_keys}')
+			elif required_keys is not None and not set(result.keys()) >= required_keys:
+				# if 'id' in result:
+				# 	API_LOG.info(f'Warning while getting item {result["id"]}:')
+				# API_LOG.warning(f'Keys {set(result.keys())} < required keys {required_keys}')
+				pass
 			elif comments_only and result['type'] != 'comment':
-				batch[result['id']] = None
+				#batch[result['id']] = None
+				pass
 			else:
 				batch[result['id']] = result
 		except Exception as e:
@@ -90,6 +91,7 @@ def get_max_item() -> int:
 	response = requests.get(url)
 	assert response.status_code == 200, \
 		f'Non-200 response from {url}'
+	API_LOG.info(f'Got response of {response.json()} from API max item.')
 	return (response.json())
 
 
