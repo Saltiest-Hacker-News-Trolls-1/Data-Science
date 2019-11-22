@@ -9,6 +9,7 @@ from salt.retriever.log import startLog, getLogFile
 import logging
 
 import pandas as pd
+import pickle
 
 startLog(getLogFile(__file__))
 RUN_LOG = logging.getLogger('root')
@@ -33,16 +34,23 @@ def doc_stream():
             RUN_LOG.info(f'yielding tokens: {tokens}')
             yield tokens, comment[1], user
 
-def update_users(doc_stream, lda):
+def update_users(doc_stream, lda, id2word):
     scores=[]
     users=[]
     for comment in doc_stream():
-        scores=predict(comment[0], id2word, )
+        scores=predict(comment[0], id2word, lda)
         salt=scores[2][1]
         scores.append({'id':comment[1], 'lda':salt})
         users.append(comment[2])
     return scores, users
-        
+
+def load_data():
+    with open('salt/models/LDA_pickle', 'rb') as f:
+        lda=pickle.load(f)
+    with open('salt/models/Dictionary_pickle', 'rb') as f:
+        id2word=pickle.load(f)
+    return lda, pickle
+
 def predict(text, id2word, lda):
     tokens=tokenize(text)
     bow=id2word.doc2bow(tokens)
