@@ -224,7 +224,7 @@ def reset_lda_flag(conn):
 
 # UPDATE users SET lda_run = 'false' WHERE id IN ( SELECT DISTINCT(by) FROM items WHERE lda_salty IS NULL )
 def update_lda_flag(conn):
-	DB_LOG.info('Updating up to 300 lda_run flags...')
+	DB_LOG.info('Updating up to 600 lda_run flags...')
 	query = """
 		UPDATE users
 		SET lda_run = 'false'
@@ -232,7 +232,7 @@ def update_lda_flag(conn):
 			SELECT DISTINCT(by)
 			FROM items
 			WHERE lda_salty IS NULL
-			LIMIT 300
+			LIMIT 600
 		);
 		"""
 	curr = conn.cursor()
