@@ -38,7 +38,8 @@ def create_tables(conn):
 			neutrality NUMERIC,
 			compound NUMERIC,
 			commentcount INT,
-			lda_run BOOLEAN DEFAULT false
+			lda_run BOOLEAN DEFAULT false,
+			lda_salty NUMERIC
 		);
 	"""
 	DB_LOG.info('Executing `users` create query...')
@@ -102,7 +103,8 @@ def populate_user_averages(conn):
 			negativity = itemsavg.negavg,
 			positivity = itemsavg.posavg,
 			neutrality = itemsavg.neuavg,
-			compound = itemsavg.compavg
+			compound = itemsavg.compavg,
+			lda_salty = itemsavg.ldaavg
 		FROM (
 			SELECT
 				by,
@@ -110,7 +112,8 @@ def populate_user_averages(conn):
 				AVG(negativity) AS negavg,
 				AVG(positivity) AS posavg,
 				AVG(neutrality) AS neuavg,
-				AVG(compound) AS compavg
+				AVG(compound) AS compavg,
+				AVG(lda_salty) AS ldaavg
 			FROM items
 			WHERE by IS NOT NULL
 			GROUP BY by
