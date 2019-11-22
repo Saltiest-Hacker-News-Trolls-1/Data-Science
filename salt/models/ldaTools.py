@@ -1,33 +1,76 @@
 from gensim.parsing.preprocessing import STOPWORDS
 from gensim import corpora
+from gensim.models.coherencemodel import CoherenceModel
 
 from gensim.models.ldamulticore import LdaMulticore
+import re
+from salt.retriever.tools import query_with_connection
+from salt.retriever.log import startLog, getLogFile
+import logging
 
-from salt.retriever.tools import sqlQuery
+import pandas as pd
+import pickle
 
+startLog(getLogFile(__file__))
+RUN_LOG = logging.getLogger('root')
+RUN_LOG.info('Connecting to database...')
+stops=[x for x in STOPWORDS]
+stops= stops + ['', 'im']
+    
 def tokenize(data):
     ''' this function takes in a string, cleans it and returs it as a list of tokens
     it works as a .apply function on a dataframe'''
     comm=data.lower()
     comm=re.sub(r'[^a-zA-Z ^0-9]', '', comm)
-    stops=[x for x in STOPWORDS]
-    stops= stops + ['']
     return [token for token in comm.split(' ') if token not in stops]
 
-def doc_stream():
-    users=sqlQuery('''SELECT username FROM users''')
-    for user in users:
-        kids=sqlQuery(f'SELECT text FROM items WHERE id=={user}')
+def doc_stream(): 
+    users=query_with_connection('''SELECT id FROM users WHERE lda_run='f' LIMIT 3000;''')
+    for i, user in enumerate(users):
+        RUN_LOG.info(f'selecting from user {i} {user[0]}')
+        kids=query_with_connection(f"SELECT text, id FROM items WHERE by='{user[0]}' and lda_salty is NULL LIMIT 100;")
         for comment in kids:
-            tokens=tokenize(comment)
-            yield tokens
+            tokens=tokenize(comment[0])
+            RUN_LOG.info(f'yielding tokens: {tokens}')
+            yield tokens, comment[1], user[0]
+
+def update_users(doc_stream, lda, id2word):
+    scores=[]
+    users=[]
+    for comment in doc_stream():
+        predictions=predict(comment[0], id2word, lda)
+        salt=0
+        for score in predictions:
+            if score[0]==2:
+                salt=score[1]
+        scores.append({'id':comment[1], 'lda':salt})
+        users.append(comment[2])
+    return scores, users
+
+def load_data():
+    with open('salt/models/LDA_pickle', 'rb') as f:
+        lda=pickle.load(f)
+    with open('salt/models/Dictionary_pickle', 'rb') as f:
+        id2word=pickle.load(f)
+    return lda, id2word
+
+def predict(text, id2word, lda, tokens=True):
+    if tokens:
+        tokens=text
+    else:
+        tokens=tokenize(text)
+    bow=id2word.doc2bow(tokens)
+    return lda[bow]
 
 def get_dict_corpus(doc_stream):
     '''takes in a cleaned dataframe of comments with a tokens column
     returns a gensim dictionary object and a corpus of those words'''
     id2word=corpora.Dictionary(doc_stream())
+    RUN_LOG.info(f'before filter_extremes len: {len(id2word.keys())}')
     id2word.filter_extremes(no_below=2)
-    corpus=[id2word.doc2bow(text) for text in comments['tokens']]
+    RUN_LOG.info(f'after filter_extremes len: {len(id2word.keys())}')
+    RUN_LOG.info('*********************Done Building Dictionary*********************')
+    corpus=[id2word.doc2bow(text[0]) for text in doc_stream()]
     return id2word, corpus
 
 def compute_cv(dictionary, corpus, limit, start=2, step=3, passes=5, n_jobs=6):
@@ -45,7 +88,9 @@ def compute_cv(dictionary, corpus, limit, start=2, step=3, passes=5, n_jobs=6):
     coherence_values=[]
     
     for iter_ in range(passes):
+        RUN_LOG.info(f'starting pass {iter_}')
         for num_topics in range(start, limit, step):
+            RUN_LOG.info(f'modeling {num_topics} topics')
             model=LdaMulticore(corpus=corpus,
                                id2word=dictionary,
                                num_topics=num_topics,
@@ -72,13 +117,7 @@ def fitldaModel(id2word, corpus, num_topics=15, n_jobs=6):
     the number of cores on CPU to use. n_jobs cannot be -1'''
     
     #create and run the LDA Model
-    lda = LdaMulticore(corpus=corpus,
-                   id2word=id2word,
-                   random_state=723812,
-                   num_topics = num_topics,
-                   passes=10,
-                   workers=n_jobs
-                  )
+
     
     return lda
 
