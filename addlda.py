@@ -16,7 +16,7 @@ def main():
 		lda, id2word = load_data()
 		LDA_LOG.info('Data loaded.')
 		while True:
-			update_lda_flag(psql_conn)
+			# update_lda_flag(psql_conn)
 			LDA_LOG.info('Getting lda scores...')
 			scores, users = update_users(doc_stream, lda, id2word)
 			LDA_LOG.info(f'Got {len(scores)} lda scores.')
