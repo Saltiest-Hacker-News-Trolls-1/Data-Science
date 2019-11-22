@@ -236,7 +236,7 @@ def update_lda_flag(conn):
 		);
 		"""
 	curr = conn.cursor()
-	execute_batch(curr, query)
+	curr.execute(query)
 	curr.close()
 	conn.commit()
 	DB_LOG.info(f'Updated lda_run flags.')
