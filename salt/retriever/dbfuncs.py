@@ -196,8 +196,9 @@ def add_lda(conn, comments, users):
 	curr.close()
 
 	users = set(users)
-	DB_LOG.info(f'Flagging lda_run as true for {len(users)} users...')
 	usersDict = {'id': user for user in users}
+	DB_LOG.info(f'Flagging lda_run as true for: {users}')
+	DB_LOG.info(f'Flagging lda_run as true for {len(users)} users...')
 	query = """
 		UPDATE users SET lda_run = true WHERE id = %(id)s;
 	"""
