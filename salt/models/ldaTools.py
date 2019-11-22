@@ -31,15 +31,17 @@ def doc_stream():
         for comment in kids:
             tokens=tokenize(comment[0])
             RUN_LOG.info(f'yielding tokens: {tokens}')
-            yield tokens, comment[1]
+            yield tokens, comment[1], user
 
 def update_users(doc_stream, lda):
-    scores={}
+    scores=[]
+    users=[]
     for comment in doc_stream():
-        scores=predict(comment[0])
+        scores=predict(comment[0], id2word, )
         salt=scores[2][1]
-        score[comment[1]]=salt
-    return scores
+        scores.append({'id':comment[1], 'lda':salt})
+        users.append(comment[2])
+    return scores, users
         
 def predict(text, id2word, lda):
     tokens=tokenize(text)
