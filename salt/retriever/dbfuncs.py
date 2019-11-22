@@ -219,6 +219,25 @@ def reset_lda_flag(conn):
 	conn.commit()
 	DB_LOG.info(f'Reset lda_run flags.')
 
+# UPDATE users SET lda_run = 'false' WHERE id IN ( SELECT DISTINCT(by) FROM items WHERE lda_salty IS NULL )
+def update_lda_flag(conn):
+	DB_LOG.info('Updating up to 300 lda_run flags...')
+	query = """
+		UPDATE users
+		SET lda_run = 'false'
+		WHERE id IN (
+			SELECT DISTINCT(by)
+			FROM items
+			WHERE lda_salty IS NULL
+			LIMIT 300
+		);
+		"""
+	curr = conn.cursor()
+	execute_batch(curr, query)
+	curr.close()
+	conn.commit()
+	DB_LOG.info(f'Updated lda_run flags.')
+
 
 def get_max_id_retrieved(conn):
 	query = """
