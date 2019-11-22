@@ -24,14 +24,27 @@ def tokenize(data):
     return [token for token in comm.split(' ') if token not in stops]
 
 def doc_stream(): 
-    users=query_with_connection('''SELECT id FROM users LIMIT 2000''')
+    users=query_with_connection('''SELECT id FROM users WHERE lda_run='f' LIMIT 2000;''')
     for i, user in enumerate(users):
         RUN_LOG.info(f'selecting from user {i} {user[0]}')
-        kids=query_with_connection(f"SELECT text FROM items WHERE by='{user[0]}' LIMIT 100")
+        kids=query_with_connection(f"SELECT text, id FROM items WHERE by='{user[0]}' and lda_salty is NULL LIMIT 100;")
         for comment in kids:
             tokens=tokenize(comment[0])
             RUN_LOG.info(f'yielding tokens: {tokens}')
-            yield tokens
+            yield tokens, comment[1]
+
+def update_users(doc_stream, lda):
+    scores={}
+    for comment in doc_stream():
+        scores=predict(comment[0])
+        salt=scores[2][1]
+        score[comment[1]]=salt
+    return scores
+        
+def predict(text, id2word, lda):
+    tokens=tokenize(text)
+    bow=id2word.doc2bow(tokens)
+    return lda[bow]
 
 def get_dict_corpus(doc_stream):
     '''takes in a cleaned dataframe of comments with a tokens column
@@ -41,7 +54,7 @@ def get_dict_corpus(doc_stream):
     id2word.filter_extremes(no_below=2)
     RUN_LOG.info(f'after filter_extremes len: {len(id2word.keys())}')
     RUN_LOG.info('*********************Done Building Dictionary*********************')
-    corpus=[id2word.doc2bow(text) for text in doc_stream()]
+    corpus=[id2word.doc2bow(text[0]) for text in doc_stream()]
     return id2word, corpus
 
 def compute_cv(dictionary, corpus, limit, start=2, step=3, passes=5, n_jobs=6):
