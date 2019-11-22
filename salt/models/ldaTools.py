@@ -49,7 +49,7 @@ def load_data():
         lda=pickle.load(f)
     with open('salt/models/Dictionary_pickle', 'rb') as f:
         id2word=pickle.load(f)
-    return lda, pickle
+    return lda, id2word
 
 def predict(text, id2word, lda):
     tokens=tokenize(text)
