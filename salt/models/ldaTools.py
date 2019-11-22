@@ -31,7 +31,7 @@ def doc_stream():
         kids=query_with_connection(f"SELECT text, id FROM items WHERE by='{user[0]}' and lda_salty is NULL LIMIT 100;")
         for comment in kids:
             tokens=tokenize(comment[0])
-            RUN_LOG.info(f'yielding tokens: {tokens}')
+            # RUN_LOG.info(f'yielding tokens: {tokens}')
             yield tokens, comment[1], user[0]
 
 def update_users(doc_stream, lda, id2word):
