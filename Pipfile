@@ -16,6 +16,7 @@ numpy = "*"
 aiohttp = {extras = ["speedups"],version = "*"}
 gensim = "*"
 python-decouple = "*"
+regex = "*"
 
 [requires]
 python_version = "3.7"
