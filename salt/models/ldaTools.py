@@ -20,12 +20,14 @@ stops= stops + ['', 'im']
 def tokenize(data):
     ''' this function takes in a string, cleans it and returs it as a list of tokens
     it works as a .apply function on a dataframe'''
+    if data is None:
+        data = ""
     comm=data.lower()
     comm=re.sub(r'[^a-zA-Z ^0-9]', '', comm)
     return [token for token in comm.split(' ') if token not in stops]
 
 def doc_stream(): 
-    users=query_with_connection('''SELECT id FROM users WHERE lda_run='f' LIMIT 3000;''')
+    users=query_with_connection('''SELECT id FROM users WHERE lda_run='f' LIMIT 300;''')
     for i, user in enumerate(users):
         RUN_LOG.info(f'selecting from user {i} {user[0]}')
         kids=query_with_connection(f"SELECT text, id FROM items WHERE by='{user[0]}' and lda_salty is NULL LIMIT 100;")
