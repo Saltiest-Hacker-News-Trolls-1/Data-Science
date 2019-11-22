@@ -19,7 +19,8 @@ def create_tables(conn):
 			negativity NUMERIC,
 			positivity NUMERIC,
 			neutrality NUMERIC,
-			compound NUMERIC
+			compound NUMERIC,
+			lda_salty NUMERIC
 		);
 	"""
 	DB_LOG.info('Executing `items` create query...')
@@ -36,7 +37,8 @@ def create_tables(conn):
 			positivity NUMERIC,
 			neutrality NUMERIC,
 			compound NUMERIC,
-			commentcount INT
+			commentcount INT,
+			lda_run BOOLEAN DEFAULT false
 		);
 	"""
 	DB_LOG.info('Executing `users` create query...')
@@ -182,6 +184,39 @@ def add_items(conn, items):
 	curr.close()
 	conn.commit()
 	DB_LOG.info(f'Added {len(items)} items.')
+
+
+def add_lda(conn, comments, users):
+	DB_LOG.info(f'Adding {len(comments)} lda scores to DB...')
+	query = """
+		UPDATE items SET lda_salty = %(lda)s WHERE id = %(id)s;
+	"""
+	curr = conn.cursor()
+	execute_batch(curr, query, comments)
+	curr.close()
+
+	DB_LOG.info(f'Flagging lda_run as true for {len(users)} users...')
+	usersDict = {'user': user for user in users}
+	query = """
+		UPDATE users SET lda_run = true WHERE id = %(id)s;
+	"""
+	curr = conn.cursor()
+	execute_batch(curr, query, usersDict)
+	curr.close()
+	conn.commit()
+	DB_LOG.info(f'Added {len(comments)} lda scores.')
+
+
+def reset_lda_flag(conn):
+	DB_LOG.info('Resetting all lda_run flags...')
+	query = """
+		UPDATE users SET lda_run = false;
+	"""
+	curr = conn.cursor()
+	execute_batch(curr, query)
+	curr.close()
+	conn.commit()
+	DB_LOG.info(f'Reset lda_run flags.')
 
 
 def get_max_id_retrieved(conn):
