@@ -111,3 +111,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# large data file
+glove.twitter.*
+
+# vim swap files
+*.swp
