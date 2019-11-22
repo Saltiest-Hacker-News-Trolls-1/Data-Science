@@ -34,7 +34,7 @@ def doc_stream():
         for comment in kids:
             tokens=tokenize(comment[0])
             # RUN_LOG.info(f'yielding tokens: {tokens}')
-            yield tokens, comment[1], user[0]
+            yield tokens, comment[1], user
 
 def update_users(doc_stream, lda, id2word):
     scores=[]
