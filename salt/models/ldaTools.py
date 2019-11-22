@@ -44,7 +44,7 @@ def update_users(doc_stream, lda, id2word):
         salt=0
         for score in predictions:
             if score[0]==2:
-                salt=score[1]
+                salt=float(score[1])
         scores.append({'id':comment[1], 'lda':salt})
         users.append(comment[2])
     return scores, users
